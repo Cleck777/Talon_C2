@@ -1,4 +1,4 @@
-from MTLS_Command import MTLS_Command
+from MTLS_Controller import MTLS_Controller
 
 current_command = None
 class CommandFactory:
@@ -50,5 +50,5 @@ class CommandFactory:
         current_command = command_name
         prompt = f"Talon C2 {command_name}> " 
         
-if __name__ == "__main__":
+#if __name__ == "__main__":
     
