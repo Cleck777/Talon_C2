@@ -1,12 +1,21 @@
 from typing import Callable, Dict, Optional
-from MTLS_Server import MTLS_Server
 from CommandFactory import CommandFactory
+from prompt_toolkit import PromptSession
+from prompt_toolkit.history import InMemoryHistory
+from prompt_toolkit.styles import Style
+from prompt_toolkit import print_formatted_text, HTML, ANSI
+from termcolor import colored
+
 
 class C2CLI:
+    
+    pr = colored('Talon C2', 'green') 
+    success = colored('[+] ', 'green')
+    fail = colored('[-] ', 'red')
+    CommandFactory = CommandFactory()
     def __init__(self):
         self.commands: Dict[str, Callable] = {}
         self.current_command: Optional[str] = None
-        self.register_commands()
 
    
 
@@ -15,14 +24,41 @@ class C2CLI:
         if not input_str:
             return
 
-        input_parts = input_str.split()
-        command, args = input_parts[0], input_parts[1:]
-        CommandFactory.use_command(command, args)
+        #command, *args = input_str.split(maxsplit=1)
+        command = input_str
+        
+        if command == "run" and command in CommandFactory.server_command_registry:
+            CommandFactory.run_command(command, args)
+        
+        if command == "help":
+            print(cli.success + "Showing available commands...")
+            CommandFactory.showHelp()
+        if command == "show options":
+            if not self.current_command:
+                print(cli.fail + "No command selected.")
+                return
+            CommandFactory.showOptions(self.current_command)
+        if command in CommandFactory.command_registry:
+            self.current_command = command
+        if command == "back":
+            self.current_command = None
+        if command == "exit":
+            print(colored('[-]', 'red') + " Exiting C2 CLI...")
+            exit()
+        if command not in CommandFactory.command_registry and command not in CommandFactory.server_command_registry:
+            print(cli.fail + "Unknown command. Type 'help' for a list of commands.")
+        
+
+
+
+            
+        
 
         
 
     def show_help(self, args):
         """Shows available commands."""
+        print(cli.success + "Showing available commands.")
         print("Available Commands:")
         CommandFactory.showHelp()
 
@@ -36,15 +72,23 @@ class C2CLI:
         print(f"Options for {self.current_command}:")
         for option, value in options.items():
             print(f"- {option}: {value}")
+    def switch_command_context(self, command: str):
+        """Switches the current command context."""
+        self.current_command = command
 
 # Main loop to run the CLI
 if __name__ == "__main__":
     cli = C2CLI()
-    CommandFactory = CommandFactory()
+    session = PromptSession(history=InMemoryHistory())
     try:
         while True:
-            prompt = f"Talon C2 {cli.current_command}> " if cli.current_command else "Talon C2> "
-            user_input = input(prompt)
+            if cli.current_command:
+                prompt_text = HTML('<ansigreen>Talon C2</ansigreen> <ansiwhite>[{}] Current command $ ></ansiwhite> '.format(cli.current_command))
+            else:
+                prompt_text = HTML('<ansigreen>Talon C2</ansigreen> <ansiwhite>$ ></ansiwhite> ')
+            # Use prompt_toolkit's session to read input with support for history
+            
+            user_input = session.prompt(prompt_text)
             cli.input_handler(user_input)
     except KeyboardInterrupt:
         print("\nExiting C2 CLI...")
