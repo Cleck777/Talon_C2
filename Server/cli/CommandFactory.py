@@ -4,6 +4,7 @@ from OptionsTable import OptionsTable
 current_command = None
 class CommandFactory:
 
+    
     # Create a table instance
     MTLSTable = OptionsTable(title="MTLS Server Options",
                         column_names=["Option", "Current Setting", "Required", "Description"])
@@ -29,6 +30,13 @@ class CommandFactory:
             "public key": "Required"
             # Add more options as needed
         },
+        "setting": {
+            "ip": "",
+            "port": "",
+            "private key": "",
+            "public key": ""
+            # Add more options as needed
+        },
         "location": {
             "ip": 0,
             "port": 1,
@@ -38,6 +46,7 @@ class CommandFactory:
         },
         "Table": MTLSTable
         },
+        "Controller": MTLS_Controller
     }
     
 
@@ -62,7 +71,7 @@ class CommandFactory:
     def create_command(command_name: str):
         command_class = CommandFactory.command_registry.get(command_name)
         if command_class:
-            return command_class()  # Dynamically create an instance of the command class
+            return command_class() # Dynamically create an instance of the command class
         else:
             print("Unknown command:", command_name)
             return None
@@ -85,12 +94,36 @@ class CommandFactory:
         CLIMain.current_command = command_name
         print("use Command Hit")
     @staticmethod
+    def set_option(command_name: str, args: str):
+        if not command_name:
+            print("No command selected to set options for.")
+            return
+        if args:
+            option_name, setting = args.split(" ", 1)
+            CommandFactory.command_registry[command_name]["setting"][option_name] = setting
+            CommandFactory.command_registry[command_name]["Table"].modify_row(CommandFactory.command_registry[command_name]["location"][option_name], setting)
+
+        else:
+            print("Invalid set command format. Use: set <option> <value>")
+    @staticmethod
     def showOptions(current_command: str):
         if not current_command or current_command not in CommandFactory.command_registry:
             print("No command selected or no options available for the current command.")
             return
         table = CommandFactory.command_registry[current_command]["Table"]
         table.display()
+    @staticmethod
+    def run_command(command_name: str, args: list):
+        if not command_name:
+            print("No command selected.")
+            return
+        if command_name in CommandFactory.command_registry:
+            print("Running command:", command_name)
+            print(CommandFactory.command_registry["Controller"])
+            CommandFactory.command_registry["Controller"].run(CommandFactory.command_registry)
+            return
+        print(command_name)
+    
         #options = CommandFactory.command_registry[current_command]["options"]
         #print(f"Options for {current_command}:")
         #for option, value in options.items():

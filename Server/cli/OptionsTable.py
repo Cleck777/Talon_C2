@@ -4,29 +4,33 @@ from rich.table import Table
 class OptionsTable:
     def __init__(self, title, column_names):
         self.console = Console()
-        self.table = Table(title=title)
-        for name in column_names:
+        self.title = title
+        self.column_names = column_names
+        self.data = []  # Initialize an empty list to track row data
+        self._rebuild_table()
+
+    def _rebuild_table(self):
+        """Rebuilds the table from the stored data."""
+        self.table = Table(title=self.title)
+        for name in self.column_names:
             self.table.add_column(name, style="cyan", no_wrap=True)
-    
+        for row_data in self.data:
+            self.table.add_row(*row_data)
+
     def add_row(self, option, current_setting="", required="", description=""):
-        """Add a row to the table."""
-        self.table.add_row(option, current_setting, required, description)
+        """Add a row to the table and update the data list."""
+        self.data.append([option, current_setting, required, description])
+        self._rebuild_table()
     
     def modify_row(self, row_index, option=None, current_setting=None):
-        """Modify an existing row. 'row_index' is 0-based."""
-        if 0 <= row_index < len(self.table.rows):
-            row = self.table.rows[row_index]
+        """Modify a row based on the index and given values."""
+        if 0 <= row_index < len(self.data):
             if option is not None:
-                row.cells[0].text = option
+                self.data[row_index][1] = option
             if current_setting is not None:
-                row.cells[1].text = current_setting
-            
-    
-    def set_current_setting(self, row_index, current_setting):
-        """Set the current setting for a row."""
-        if 0 <= row_index < len(self.table.rows):
-            self.table.rows[row_index].cells[1].text = current_setting
-    
+                self.data[row_index][1] = current_setting
+            self._rebuild_table()
+
     def display(self):
         """Display the table."""
         self.console.print(self.table)

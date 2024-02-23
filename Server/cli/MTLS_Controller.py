@@ -2,14 +2,16 @@ import ssl
 from CertBuilder import CertBuilder
 from MTLS_Server import MTLS_Server
 class MTLS_Controller:
-
-    def __init__(self):
-        self.command_options = {
-            "MTLS": {"CA_CERT": None, "SERVER_CERT": None, "SERVER_KEY": None}
+    command_options = {
+        "MTLS": {
+            "CA_CERT": "",
+            "SERVER_CERT": "",
+            "SERVER_KEY": ""
         }
+    }
 
-
-    def start_mtls_server(self, host: str, port_str: str):
+    @staticmethod
+    def start_mtls_server(host: str, port_str: str):
         """Starts the mTLS server with the given host and port."""
         try:
             port = int(port_str)
@@ -18,13 +20,15 @@ class MTLS_Controller:
             mtls_server.start_server(host, port)
         except ValueError:
             print("Invalid port number.")
-    def set_mtls_options(self, ca_cert: str, server_cert: str, server_key: str):
+    @staticmethod
+    def set_mtls_options(ca_cert: str, server_cert: str, server_key: str):
         """Sets the mTLS options."""
-        self.command_options["MTLS"]["CA_CERT"] = ca_cert
-        self.command_options["MTLS"]["SERVER_CERT"] = server_cert
-        self.command_options["MTLS"]["SERVER_KEY"] = server_key
+        MTLS_Controller.command_options["MTLS"]["CA_CERT"] = ca_cert
+        MTLS_Controller.command_options["MTLS"]["SERVER_CERT"] = server_cert
+        MTLS_Controller.command_options["MTLS"]["SERVER_KEY"] = server_key
         print("mTLS options set.")
-    def generate_mtls_certificates(self):
+    @staticmethod
+    def generate_mtls_certificates():
         print("Generating mTLS certificates...")
         ca_country = input("CA Country: ") 
         ca_state = input("CA State: ")
@@ -43,5 +47,9 @@ class MTLS_Controller:
 
         ca_cert_builder.save_certificates()
         print("mTLS certificates generated and saved.")
+    @staticmethod
+    def run(command_registry):
+        MTLS_Controller.set_mtls_options(command_registry["MTLS"]["setting"]["ca_cert"], command_registry["MTLS"]["setting"]["server_cert"], command_registry["MTLS"]["setting"]["server_key"])
 
-    
+        MTLS_Controller.start_mtls_server(command_registry["MTLS"]["setting"]["ip"], command_registry["MTLS"]["setting"]["port"])
+
